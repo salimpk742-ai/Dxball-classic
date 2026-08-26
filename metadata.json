@@ -1,0 +1,6 @@
+{
+  "name": "DX-BALL",
+  "description": "The classic retro brick breaker arcade game with 10 sequential unlockable levels, DX-Ball physics, power-ups, and synth audio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
