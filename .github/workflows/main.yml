@@ -1,69 +1,11 @@
-name: Build Android App
-
-on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build web app
-        run: npm run build
-
-      - name: Sync Capacitor Android
-        run: npx cap sync android
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept Android licenses
-        run: yes | sdkmanager --licenses || true
-
-      - name: Decode signing keystore
+      - name: Check AAB
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/dxball-upload-key.jks
-
-      - name: Make Gradle executable
-        working-directory: android
-        run: chmod +x gradlew
-
-      - name: Build signed Android App Bundle
-        working-directory: android
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          ./gradlew bundleRelease \
-            -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/android/dxball-upload-key.jks" \
-            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
-            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
-            -Pandroid.injected.signing.key.password="$KEY_PASSWORD"
+          echo "Checking for AAB..."
+          ls -lh android/app/build/outputs/bundle/release/
 
       - name: Upload signed AAB
         uses: actions/upload-artifact@v4
         with:
           name: dxball-classic-signed-aab
           path: android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
